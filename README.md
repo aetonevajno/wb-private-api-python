@@ -12,11 +12,11 @@
 
 ## Установка
 
-Откройте терминал в папке проекта и выполните:
+Откройте терминал и выполните:
 
 ```bash
 python3 -m venv .venv
-.venv/bin/python -m pip install -e '.[browser]'
+.venv/bin/python -m pip install 'wb-private-api-python[browser]'
 ```
 
 ## Первый запрос
