@@ -1,13 +1,20 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "wb-private-api-python"
 version = "0.1.0"
 description = "Python client for selected Wildberries storefront endpoints"
+readme = "README.md"
+license = "ISC"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
 dependencies = []
+
+[project.urls]
+Source = "https://github.com/aetonevajno/wb-private-api-python"
+Issues = "https://github.com/aetonevajno/wb-private-api-python/issues"
 
 [project.optional-dependencies]
 browser = ["seleniumbase>=4.55.2,<5"]

@@ -1,6 +1,6 @@
 # wb-private-api-python
 
-Библиотека получает данные с сайта Wildberries: ищет товары, показывает цены и остатки, получает отзывы, вопросы и сведения о продавцах. Это неофициальный клиент для внутреннего API сайта. За основу взят [форк `rrrublev/wb-private-api` версии 0.8.10](https://github.com/rrrublev/wb-private-api/tree/9dd14d4), а код написан заново на Python.
+Библиотека получает данные с сайта Wildberries: ищет товары, показывает цены и остатки, получает отзывы, вопросы и сведения о продавцах. Это неофициальный клиент для внутреннего API сайта. За основу взят [форк `rrrublev/wb-private-api` версии 0.8.10](https://github.com/rrrublev/wb-private-api/tree/9dd14d4) проекта [Станислава Гельмана](https://github.com/glmn/wb-private-api), а код написан заново на Python.
 
 ## Что понадобится
 
@@ -53,7 +53,7 @@ with WBPrivateAPI() as wb:
 - Читать отзывы, вопросы и сведения о видео товара: `WBProduct.get_feedbacks`, `WBProduct.get_questions`, `WBProduct.get_video`
 - Получать сведения о продавце: `get_supplier_info`
 
-Остальные методы и их параметры можно посмотреть в [`wb_private_api/client.py`](wb_private_api/client.py) и [`wb_private_api/models.py`](wb_private_api/models.py).
+Остальные методы и их параметры можно посмотреть в файлах [`client.py`](https://github.com/aetonevajno/wb-private-api-python/blob/main/wb_private_api/client.py) и [`models.py`](https://github.com/aetonevajno/wb-private-api-python/blob/main/wb_private_api/models.py).
 
 ## Как работает доступ к Wildberries
 
