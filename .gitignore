@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+build/
+dist/
+downloaded_files/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.wbaas_token
