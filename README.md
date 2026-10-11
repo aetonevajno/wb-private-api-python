@@ -49,8 +49,9 @@ with WBPrivateAPI() as wb:
 
 - Искать товары и получать подсказки для поиска: `search`, `key_hint`
 - Получать списки товаров бренда или продавца: `get_brand_catalog_page`, `get_supplier_catalog_page`
-- Получать сведения о товаре: `get_list_of_products`, `WBProduct.create`, `WBProduct.get_details_data`, `WBProduct.get_stocks`
-- Читать отзывы, вопросы и сведения о видео товара: `WBProduct.get_feedbacks`, `WBProduct.get_questions`, `WBProduct.get_video`
+- Получать сведения о товаре и доставке: `get_list_of_products`, `get_delivery_data_by_nms`, `WBProduct.create`, `WBProduct.get_details_data`, `WBProduct.get_stocks`
+- Читать отзывы, фотографии, вопросы и сведения о видео товара: `WBProduct.get_feedbacks`, `WBFeedback.get_photos`, `WBProduct.get_questions`, `WBProduct.get_video`
+- Получать данные об акциях: `get_promos`, `WBProduct.get_promo`
 - Получать сведения о продавце: `get_supplier_info`
 
 Остальные методы и их параметры можно посмотреть в файлах [`client.py`](https://github.com/aetonevajno/wb-private-api-python/blob/main/wb_private_api/client.py) и [`models.py`](https://github.com/aetonevajno/wb-private-api-python/blob/main/wb_private_api/models.py).
@@ -59,11 +60,15 @@ with WBPrivateAPI() as wb:
 
 Сайт выдаёт браузеру временный ключ доступа (cookie) для части запросов. Библиотека использует его автоматически и не сохраняет в файл. Если Wildberries отклонит запрос из-за устаревшего ключа, библиотека обновит страницу или откроет новое окно и повторит запрос один раз. Если это не поможет, программа покажет ошибку.
 
-## Что пока недоступно
+## Что важно знать
 
-`get_delivery_data_by_nms` и `get_promos` вызывают `NotImplementedError`: адреса, использованные в исходном форке, вернули ошибку 404 при проверке 10 октября 2026 года. Их нужно будет подключить к новым адресам после проверки.
+`get_delivery_data_by_nms` возвращает карточки товаров с полями доставки из текущего ответа Wildberries, включая `time1` и `time2`. Библиотека не переводит эти поля в дату доставки.
 
-`get_supplier_shipment` возвращает ответ сайта как есть. Пока не подтверждено, что эти данные действительно описывают отгрузки.
+`get_promos` возвращает опубликованные сайтом оформления акций. В списке могут быть акции с датой начала в будущем: смотрите поля `start` и `end` у каждой записи.
+
+`WBProduct.get_promo()` считает товар участвующим в акции, если Wildberries прислал `panelPromoId`. Поле `active` само по себе не означает, что акция уже началась.
+
+`get_supplier_shipment` сохранил название метода из исходного форка, но текущий ответ содержит сведения о продавце и его рейтинге, а не список отгрузок.
 
 Wildberries может изменить внутренний API без предупреждения. Основные запросы проверяли в браузере. Обновление ключа проверяли на смоделированной ошибке 498, но не на настоящем отказе сайта.
 

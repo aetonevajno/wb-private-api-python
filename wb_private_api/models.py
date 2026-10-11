@@ -25,12 +25,16 @@ class WBFeedback:
     raw: dict[str, Any]
 
     def get_photos(self, size: str = "min") -> list[str]:
+        if size not in {"min", "full"}:
+            raise ValueError("size must be 'min' or 'full'")
         field_name = f"{size}SizeUri"
-        return [
-            routes.FEEDBACK_PHOTO + photo[field_name]
-            for photo in self.raw.get("photos", [])
-            if photo.get(field_name)
-        ]
+        photo_urls = []
+        for photo in self.raw.get("photos") or []:
+            if photo.get("key"):
+                photo_urls.append(routes.feedback_photo_url(photo["key"], size))
+            elif photo.get(field_name):
+                photo_urls.append(routes.FEEDBACK_PHOTO + photo[field_name])
+        return photo_urls
 
 
 @dataclass
@@ -110,15 +114,19 @@ class WBProduct:
         return sizes[0].get("stocks", []) if sizes else []
 
     def get_promo(self) -> dict[str, Any]:
-        if not self.card:
-            self.get_product_data()
-        if "panelPromoId" not in self.card:
+        if "panelPromoId" in self.raw:
+            promo_source = self.raw
+        else:
+            if self.details is None:
+                self.get_details_data()
+            promo_source = self.details or {}
+        if "panelPromoId" not in promo_source:
             return {"active": False}
         return {
             "active": True,
-            "panelPromoId": self.card["panelPromoId"],
-            "promoTextCard": self.card.get("promoTextCard"),
-            "promoTextCat": self.card.get("promoTextCat"),
+            "panelPromoId": promo_source["panelPromoId"],
+            "promoTextCard": promo_source.get("promoTextCard"),
+            "promoTextCat": promo_source.get("promoTextCat"),
         }
 
     def get_feedbacks(self) -> list[WBFeedback]:

@@ -17,6 +17,9 @@ SUPPLIER_SHIPMENT = "https://suppliers-shipment-2.wildberries.ru/api/v1/supplier
 FEEDBACKS = "https://feedbacks{}.wb.ru/feedbacks/v2/{}"
 QUESTIONS = "https://questions.wildberries.ru/api/v1/questions"
 FEEDBACK_PHOTO = "https://feedbackphotos.wbstatic.net/"
+PROMOTION_CREATIVES = (
+    "https://static-basket-01.wbbasket.ru/vol0/data/promotion-creatives.json"
+)
 
 PRODUCTS_PER_PAGE = 100
 MAX_CATALOG_PAGES = 100
@@ -124,6 +127,19 @@ def video_url(product_id: int, kind: str = "hls", quality: str = "1440p") -> str
     if kind == "mp4":
         return f"{base}/mp4/{quality}/1.mp4"
     return f"{base}/hls/{quality}/index.m3u8"
+
+
+def feedback_photo_url(key: str, size: str) -> str:
+    photo_sizes = {"min": "ms", "full": "fs"}
+    if size not in photo_sizes:
+        raise ValueError("size must be 'min' or 'full'")
+    partition, separator, photo_id = key.partition("/")
+    if not separator or not partition.isdecimal() or not photo_id or "/" in photo_id:
+        raise ValueError("Invalid Wildberries feedback photo key")
+    return (
+        f"https://feedback-{int(partition):02d}.wbbasket.ru/"
+        f"{photo_id}/{photo_sizes[size]}.webp"
+    )
 
 
 def search_query_id() -> str:

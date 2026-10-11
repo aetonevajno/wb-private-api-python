@@ -220,14 +220,16 @@ class WBPrivateAPI:
         )
 
     def get_delivery_data_by_nms(self, product_ids: list[int]) -> list[dict[str, Any]]:
-        raise NotImplementedError(
-            "The source fork's /cards/list delivery route returned HTTP 404 in live checks"
-        )
+        return self.get_list_of_products(product_ids)
 
     def get_promos(self) -> list[dict[str, Any]]:
-        raise NotImplementedError(
-            "The source fork's /webapi/settings/promo/get route returned HTTP 404 in live checks"
-        )
+        response = self.session.get(routes.PROMOTION_CREATIVES)
+        panels = response.get("panels") if isinstance(response, dict) else None
+        if not isinstance(panels, list) or not all(
+            isinstance(panel, dict) for panel in panels
+        ):
+            raise TypeError("Wildberries promotion response has no panel list")
+        return panels
 
     def get_brand_product_count(self, brand_id: int) -> int:
         response = self.session.get(
@@ -269,6 +271,7 @@ class WBPrivateAPI:
         return self.session.get(routes.SUPPLIER_INFO.format(seller_id))
 
     def get_supplier_shipment(self, seller_id: int) -> dict[str, Any]:
+        """Return the supplier profile and rating from the legacy shipment route"""
         return self.session.get(
             routes.SUPPLIER_SHIPMENT.format(seller_id),
             headers={"x-client-name": "site"},

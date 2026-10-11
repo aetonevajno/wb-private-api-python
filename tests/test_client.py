@@ -1,7 +1,7 @@
 import unittest
 
 from wb_private_api import WBPrivateAPI, routes
-from wb_private_api.models import WBProduct
+from wb_private_api.models import WBFeedback, WBProduct
 
 
 class FakeSession:
@@ -38,12 +38,25 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(catalog.products, [])
         self.assertEqual(len(session.calls), 1)
 
-    def test_broken_source_routes_fail_explicitly(self):
-        client = WBPrivateAPI(session=FakeSession([]))
-        with self.assertRaises(NotImplementedError):
+    def test_delivery_data_uses_current_product_list(self):
+        session = FakeSession(
+            [{"products": [{"id": 142766410, "time1": 2, "time2": 24}]}]
+        )
+        products = WBPrivateAPI(session=session).get_delivery_data_by_nms([142766410])
+        self.assertEqual(products[0]["time2"], 24)
+        self.assertEqual(session.calls[0][0], routes.PRODUCT_LIST)
+        self.assertEqual(session.calls[0][1]["nm"], "142766410")
+
+    def test_promos_return_published_panels(self):
+        session = FakeSession([{"panels": [{"id": 1058385, "url": "sale"}]}])
+        promos = WBPrivateAPI(session=session).get_promos()
+        self.assertEqual(promos, [{"id": 1058385, "url": "sale"}])
+        self.assertEqual(session.calls[0][0], routes.PROMOTION_CREATIVES)
+
+    def test_promos_reject_unexpected_response(self):
+        client = WBPrivateAPI(session=FakeSession([{"panels": {"id": 1}}]))
+        with self.assertRaisesRegex(TypeError, "no panel list"):
             client.get_promos()
-        with self.assertRaises(NotImplementedError):
-            client.get_delivery_data_by_nms([142766410])
 
     def test_product_details_and_stocks(self):
         session = FakeSession(
@@ -82,6 +95,47 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(questions["fetchedQuestions"], 30)
         self.assertTrue(questions["truncated"])
         self.assertEqual(session.calls[2][1]["skip"], 30)
+
+    def test_product_promo_uses_catalog_data_without_another_request(self):
+        session = FakeSession([])
+        product = WBProduct({"id": 1, "panelPromoId": 1058385}, session)
+        self.assertEqual(product.get_promo()["panelPromoId"], 1058385)
+        self.assertEqual(session.calls, [])
+
+    def test_product_promo_uses_details_when_created_by_id(self):
+        session = FakeSession([{"products": [{"panelPromoId": 9}]}])
+        product = WBProduct({"id": 1}, session)
+        self.assertEqual(product.get_promo()["panelPromoId"], 9)
+        self.assertEqual(session.calls[0][0], routes.PRODUCT_DETAILS)
+
+    def test_feedback_photos_support_current_and_legacy_responses(self):
+        feedback = WBFeedback(
+            {
+                "photos": [
+                    {"key": "6/8a8957e3-257c-4053-9776-4bcb72248491"},
+                    {
+                        "minSizeUri": "feedbacks/1/2/min.jpg",
+                        "fullSizeUri": "feedbacks/1/2/full.jpg",
+                    },
+                ]
+            }
+        )
+        self.assertEqual(
+            feedback.get_photos(),
+            [
+                "https://feedback-06.wbbasket.ru/8a8957e3-257c-4053-9776-4bcb72248491/ms.webp",
+                "https://feedbackphotos.wbstatic.net/feedbacks/1/2/min.jpg",
+            ],
+        )
+        self.assertEqual(
+            feedback.get_photos("full")[0],
+            "https://feedback-06.wbbasket.ru/8a8957e3-257c-4053-9776-4bcb72248491/fs.webp",
+        )
+
+    def test_feedback_photos_reject_unsupported_size(self):
+        feedback = WBFeedback({"photos": [{"key": "6/photo"}]})
+        with self.assertRaisesRegex(ValueError, "size must"):
+            feedback.get_photos("large")
 
 
 if __name__ == "__main__":
